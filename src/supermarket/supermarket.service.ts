@@ -126,6 +126,31 @@ export class SupermarketService {
     return await market.save();
   }
 
+  async updateDropshippingMode(
+    id: string,
+    enabled: boolean,
+  ): Promise<SuperMarket> {
+    const market = await this.supermarketModel.findById(id);
+    if (!market) {
+      throw new NotFoundException('Supermarket not found');
+    }
+    market.dropshippingMode = enabled;
+    if (enabled) {
+      market.isOpen = true;
+    }
+    return await market.save();
+  }
+
+  async verifyDropshippingMode(id: string): Promise<{ enabled: boolean }> {
+    const market = await this.supermarketModel.findById(id);
+
+    if (!market) {
+      throw new NotFoundException('Supermarket not found');
+    }
+
+    return { enabled: market.dropshippingMode === true };
+  }
+
   async getAllSupermarkets(): Promise<SuperMarket[]> {
     try {
       return this.supermarketModel.find();

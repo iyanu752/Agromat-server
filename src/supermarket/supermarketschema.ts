@@ -82,6 +82,9 @@ export class SuperMarket {
   holidayMode: boolean;
 
   @Prop({ required: false, default: false })
+  dropshippingMode: boolean;
+
+  @Prop({ required: false, default: false })
   isOpen: boolean;
 }
 

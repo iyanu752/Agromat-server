@@ -46,6 +46,17 @@ export class SupermarketController {
     return await this.supermarketService.updateHolidayMode(id, body.enabled);
   }
 
+  @Patch(':id/dropshipping-mode')
+  async toggleDropshippingMode(
+    @Param('id') id: string,
+    @Body() body: { enabled: boolean },
+  ) {
+    return await this.supermarketService.updateDropshippingMode(
+      id,
+      body.enabled,
+    );
+  }
+
   @Put(':id')
   async updateSupermarket(
     @Param('id') id: string,

@@ -17,6 +17,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PaymentModule } from './payment/payment.module';
 import { VerificationModule } from './verification/verification.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { UploadController } from './upload/upload.controller';
 
 @Module({
   imports: [
@@ -38,8 +41,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     PaymentModule,
     VerificationModule,
     NotificationsModule,
+    CloudinaryModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, UploadController],
+  providers: [AppService, CloudinaryService],
 })
 export class AppModule {}

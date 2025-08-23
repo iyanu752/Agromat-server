@@ -17,18 +17,29 @@ import { PaymentService } from 'src/payment/payment.service';
 import { CartService } from 'src/cart/cart.service';
 import { VerificationService } from 'src/verification/verification.service';
 import { NotificationsGateway } from 'src/notifications/notifications.gateway';
+import { SuperMarket } from 'src/supermarket/supermarketschema';
 // import { VerifyOrderDto } from 'src/verification/dto/verify-order.dto';
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectModel(Orders.name)
     private orderModel: Model<Orders>,
+    @InjectModel(SuperMarket.name)
+    private supermarketModel: Model<SuperMarket>,
     private paystackService: PaymentService,
     private cartService: CartService,
     private notificationsGateway: NotificationsGateway,
     private verificationService: VerificationService,
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
+
+  private async isDropshippingEnabled(supermarketId: string): Promise<boolean> {
+    const market = await this.supermarketModel.findById(supermarketId);
+    if (!market) {
+      throw new NotFoundException('Supermarket not found');
+    }
+    return market.dropshippingMode === true;
+  }
 
   async createOrder(
     createOrderDto: CreateOrderDto,
@@ -57,10 +68,18 @@ export class OrdersService {
       });
 
       const savedOrder = await newOrder.save();
-      this.notificationsGateway.server.emit('orderPlaced', {
-        message: ` New order has been added.`,
-        product: savedOrder,
-      });
+      if (createOrderDto.supermarketId) {
+        const dropshippingEnabled = await this.isDropshippingEnabled(
+          createOrderDto.supermarketId,
+        );
+
+        if (!dropshippingEnabled) {
+          this.notificationsGateway.server.emit('orderPlaced', {
+            message: `New order has been added.`,
+            product: savedOrder,
+          });
+        }
+      }
 
       return {
         success: true,
@@ -193,6 +212,7 @@ export class OrdersService {
     deliveryAddress: string;
     deliveryInstructions?: string;
     orderId: string;
+    supermarketId?: string; // Add this field
   }): Promise<Orders> {
     const newOrder = new this.orderModel({
       ...orderData,
@@ -200,7 +220,22 @@ export class OrdersService {
       paymentStatus: 'pending',
     });
 
-    return await newOrder.save();
+    const savedOrder = await newOrder.save();
+
+    if (orderData.supermarketId) {
+      const dropshippingEnabled = await this.isDropshippingEnabled(
+        orderData.supermarketId,
+      );
+
+      if (!dropshippingEnabled) {
+        this.notificationsGateway.server.emit('orderPlaced', {
+          message: `New order has been added.`,
+          product: savedOrder,
+        });
+      }
+    }
+
+    return savedOrder;
   }
 
   async getOrdersForVendor(vendorId: string) {

@@ -87,6 +87,9 @@ export class UpdateSupermarketDto {
   holidayMode?: boolean;
 
   @IsOptional()
+  dropshippingMode?: boolean;
+
+  @IsOptional()
   autoSchedule?: {
     enabled: boolean;
     days: {
