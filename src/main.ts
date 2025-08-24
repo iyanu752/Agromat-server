@@ -5,8 +5,8 @@ import { PORT } from './common/config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: 'https://estate-run-client.vercel.app',
-    Credentials: true,
+    origin: ['https://agromat.vercel.app', 'http://localhost:5173'],
+    credentials: true,
   });
   await app.listen(PORT ?? 3000);
 }

@@ -5,6 +5,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { ADMIN_PASSKEY } from 'src/common/config';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/userschema';
@@ -36,6 +37,7 @@ export class AuthService {
       businessName,
       businessDescription,
       businessPhoneNumber,
+      adminPassKey,
     } = signUpDto;
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
@@ -43,6 +45,13 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
+
+    if (userType === 'admin') {
+      const envPassKey = ADMIN_PASSKEY;
+      if (!adminPassKey || adminPassKey !== envPassKey) {
+        throw new UnauthorizedException('Invalid admin passkey');
+      }
+    }
 
     try {
       const user = await this.userModel.create({
@@ -97,7 +106,7 @@ export class AuthService {
   }
 
   async logIn(logInDto: LogInDto): Promise<{ token: string; user: any }> {
-    const { email, password, userType } = logInDto;
+    const { email, password, userType, adminPassKey } = logInDto;
 
     if (!email || !password) {
       throw new BadRequestException('Email and password are required');
@@ -106,6 +115,13 @@ export class AuthService {
     const user = await this.userModel.findOne({ email }).select('+password');
     if (!user) {
       throw new NotFoundException('No user found with this email');
+    }
+
+    if (userType === 'admin') {
+      const envPassKey = ADMIN_PASSKEY;
+      if (!adminPassKey || adminPassKey !== envPassKey) {
+        throw new UnauthorizedException('Invalid admin passkey');
+      }
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);

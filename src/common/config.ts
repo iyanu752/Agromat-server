@@ -8,4 +8,5 @@ export const {
   API_KEY,
   API_SECRET,
   CLOUD_NAME,
+  ADMIN_PASSKEY,
 } = process.env;
