@@ -20,7 +20,7 @@ import { SupermarketSchema } from 'src/supermarket/supermarketschema';
         return {
           secret: config.get<string>('JWT_SECRET'),
           signOptions: {
-            expiresIn: config.get<string | number>('JWT_EXPIRE'),
+            expiresIn: config.get<string | number>('JWT_EXPIRE') || '1h',
           },
         };
       },
